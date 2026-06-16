@@ -18,7 +18,7 @@ the runtime assembly).
 ## Tools
 
 `Gc2InstructionListTools.cs`
-- `gc2_add_instruction` — append a GC2 `Instruction` to an `InstructionList` field (e.g. `CarEntry.onEnter`, `Trigger.m_Instructions`); optionally set scalar/enum fields.
+- `gc2_add_instruction` — append a GC2 `Instruction` to an `InstructionList` field (e.g. a component's `onEnter`, or `Trigger.m_Instructions`); optionally set scalar/enum fields.
 - `gc2_list_instructions` — list a list's instructions (read-only; safe alternative to `component_get`).
 - `gc2_remove_instruction` — remove by index, or clear with `index: -1`.
 - `gc2_set_instruction_game_object` — set a `PropertyGetGameObject` field to `self`, `player`, or a scene object by path.

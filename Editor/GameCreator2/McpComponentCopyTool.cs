@@ -24,9 +24,9 @@ namespace Gc2Mcp
     {
         [McpTool("Copy a component with ALL its serialized values (including object references) from one GameObject to another, using Unity's native copy/paste. If the target already has that component type, pastes values onto the existing one; otherwise adds a new copy. Object references that point at the SOURCE object's own children will still point there after the copy — re-point them afterwards. Saves the scene dirty flag; call editor_save_scene after.")]
         public static string ComponentCopy(
-            [McpParam("Source GameObject path (e.g. '/Car' for a root named Car)")] string source,
+            [McpParam("Source GameObject path (e.g. '/Root' for a root object)")] string source,
             [McpParam("Component type to copy (e.g. 'VehicleLights')")] string componentType,
-            [McpParam("Target GameObject path (e.g. 'Vesta_1')")] string target,
+            [McpParam("Target GameObject path (e.g. 'MyObject')")] string target,
             [McpParam("If true (default) and the target already has the component, paste values onto it; if false, always add a new copy")] bool pasteValuesIfExists = true)
         {
 #if UNITY_EDITOR
@@ -80,8 +80,8 @@ namespace Gc2Mcp
 
         [McpTool("Copy a whole GameObject (with all children and components) into a target parent, preserving its LOCAL transform (so interior parts land in the same spot relative to the new car). Uses Object.Instantiate, so references WITHIN the copied subtree remap to the copies; references to objects OUTSIDE it (e.g. an instruction targeting the original car) are preserved and may need re-pointing. Saves the scene dirty flag; call editor_save_scene after.")]
         public static string GameObjectCopy(
-            [McpParam("Source GameObject path (e.g. '/Car/CenterOfGravity')")] string source,
-            [McpParam("Target parent GameObject path (e.g. 'Vesta_1')")] string targetParent,
+            [McpParam("Source GameObject path (e.g. '/SourceRoot/Child')")] string source,
+            [McpParam("Target parent GameObject path (e.g. 'MyObject')")] string targetParent,
             [McpParam("Optional new name for the copy (defaults to the source name)")] string newName = null)
         {
 #if UNITY_EDITOR

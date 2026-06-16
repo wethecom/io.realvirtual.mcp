@@ -1,5 +1,5 @@
 // Custom UnityMCP tool: append Game Creator 2 Instructions to an InstructionList
-// field (e.g. CarEntry.onEnter / onExit) over MCP.
+// field (e.g. 'onEnter') over MCP.
 //
 // GC2 instruction lists are [SerializeReference] polymorphic collections, which the
 // generic component_set tool cannot populate. This writes them the way the Inspector
@@ -26,12 +26,12 @@ namespace Gc2Mcp
 {
     public static class Gc2InstructionListTools
     {
-        [McpTool("Append a Game Creator 2 Instruction to an InstructionList field on a component (e.g. CarEntry.onEnter / onExit). Optionally set simple scalar/enum fields of the new instruction from JSON (enums by integer index). Editor only. Saves the scene dirty flag; call editor_save_scene after.")]
+        [McpTool("Append a Game Creator 2 Instruction to an InstructionList field on a component (e.g. 'onEnter'). Optionally set simple scalar/enum fields of the new instruction from JSON (enums by integer index). Editor only. Saves the scene dirty flag; call editor_save_scene after.")]
         public static string Gc2AddInstruction(
-            [McpParam("GameObject hierarchy path (e.g. 'Vesta_1')")] string name,
-            [McpParam("Component type that owns the list (e.g. 'CarEntry')")] string componentType,
+            [McpParam("GameObject hierarchy path (e.g. 'MyObject')")] string name,
+            [McpParam("Component type that owns the list (e.g. 'MyComponent')")] string componentType,
             [McpParam("Serialized field name of the InstructionList (e.g. 'onEnter' or 'onExit')")] string listField,
-            [McpParam("Instruction class name to add (e.g. 'InstructionSetVehicleControlMode')")] string instructionType,
+            [McpParam("Instruction class name to add (e.g. 'InstructionDebugMessage')")] string instructionType,
             [McpParam("Optional JSON of simple fields to set on the new instruction, e.g. {\"m_Mode\":1}. Enums use their integer index.")] string fields = null)
         {
 #if UNITY_EDITOR
@@ -108,10 +108,10 @@ namespace Gc2Mcp
 #endif
         }
 
-        [McpTool("List the Game Creator 2 Instructions in an InstructionList field on a component (e.g. CarEntry.onEnter). Read-only — use this to verify a list instead of the crash-prone component_get.")]
+        [McpTool("List the Game Creator 2 Instructions in an InstructionList field on a component (e.g. 'onEnter'). Read-only — use this to verify a list instead of the crash-prone component_get.")]
         public static string Gc2ListInstructions(
-            [McpParam("GameObject hierarchy path (e.g. 'Vesta_1')")] string name,
-            [McpParam("Component type that owns the list (e.g. 'CarEntry')")] string componentType,
+            [McpParam("GameObject hierarchy path (e.g. 'MyObject')")] string name,
+            [McpParam("Component type that owns the list (e.g. 'MyComponent')")] string componentType,
             [McpParam("Serialized field name of the InstructionList (e.g. 'onEnter')")] string listField)
         {
 #if UNITY_EDITOR
@@ -153,8 +153,8 @@ namespace Gc2Mcp
 
         [McpTool("Remove a Game Creator 2 Instruction from an InstructionList field by index, or clear the whole list with index = -1. Saves the scene dirty flag; call editor_save_scene after.")]
         public static string Gc2RemoveInstruction(
-            [McpParam("GameObject hierarchy path (e.g. 'Vesta_1')")] string name,
-            [McpParam("Component type that owns the list (e.g. 'CarEntry')")] string componentType,
+            [McpParam("GameObject hierarchy path (e.g. 'MyObject')")] string name,
+            [McpParam("Component type that owns the list (e.g. 'MyComponent')")] string componentType,
             [McpParam("Serialized field name of the InstructionList (e.g. 'onEnter')")] string listField,
             [McpParam("Index to remove, or -1 to clear the entire list")] int index)
         {
@@ -194,9 +194,9 @@ namespace Gc2Mcp
 #endif
         }
 
-        [McpTool("Set a PropertyGetGameObject field on a Game Creator 2 instruction inside an InstructionList (e.g. InstructionEnterVehicle's Target/Character). value = 'self', 'player', or a GameObject hierarchy path (direct scene reference). Saves the scene dirty flag; call editor_save_scene after.")]
+        [McpTool("Set a PropertyGetGameObject field on a Game Creator 2 instruction inside an InstructionList (e.g. an instruction's Target or Character field). value = 'self', 'player', or a GameObject hierarchy path (direct scene reference). Saves the scene dirty flag; call editor_save_scene after.")]
         public static string Gc2SetInstructionGameObject(
-            [McpParam("GameObject hierarchy path that owns the component (e.g. 'Vesta_1')")] string name,
+            [McpParam("GameObject hierarchy path that owns the component (e.g. 'MyObject')")] string name,
             [McpParam("Component type that owns the list (e.g. 'Trigger')")] string componentType,
             [McpParam("Serialized field name of the InstructionList (e.g. 'm_Instructions' owner field)")] string listField,
             [McpParam("Index of the instruction within the list")] int index,
@@ -267,7 +267,7 @@ namespace Gc2Mcp
 
         [McpTool("Set ANY [SerializeReference] (managed reference) field on a component to a new instance of a named type — e.g. a GC2 Trigger's 'm_Event' to an Event subclass (EventOnInteract, EventOnTriggerEnter3D, ...), or any polymorphic GC2 field. 'propertyPath' is a SerializedProperty path (e.g. 'm_Event'). Optionally set simple scalar/enum fields on the new instance via JSON. Use fully-qualified component types for ambiguous names (e.g. GameCreator.Runtime.VisualScripting.Trigger). Editor only; call editor_save_scene after.")]
         public static string Gc2SetManagedReference(
-            [McpParam("GameObject hierarchy path (e.g. 'Vesta_1/Triggers_Enter_Exit')")] string name,
+            [McpParam("GameObject hierarchy path (e.g. 'MyObject/MyTrigger')")] string name,
             [McpParam("Component type (fully-qualified if ambiguous, e.g. 'GameCreator.Runtime.VisualScripting.Trigger')")] string componentType,
             [McpParam("Serialized property path of the managed-reference field (e.g. 'm_Event')")] string propertyPath,
             [McpParam("Type name to instantiate into the field (e.g. 'EventOnInteract')")] string typeName,
