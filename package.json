@@ -13,7 +13,15 @@
     "ai",
     "agent",
     "automation",
-    "digital-twin"
+    "digital-twin",
+    "game-creator-2"
+  ],
+  "samples": [
+    {
+      "displayName": "Dialogue From Text (Game Creator 2)",
+      "description": "Runtime GC2 feature: parse a text script into a branching, playable Dialogue with speakers resolved by name from a Name Variables cast. Requires GC2 Core + Dialogue.",
+      "path": "Samples~/DialogueFromText"
+    }
   ],
   "license": "MIT",
   "author": {

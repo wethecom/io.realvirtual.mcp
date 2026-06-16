@@ -27,13 +27,21 @@ build GC2 logic without ever opening the Inspector:
 | `gc2_set_instruction_game_object` | set an instruction's `PropertyGetGameObject` to `self` / `player` / a scene object |
 | `gc2_set_managed_reference` | set **any** `[SerializeReference]` field by path to a named type — Events, Conditions, Properties |
 | `gc2_copy_instructions` | copy whole instruction sets between lists, deep-cloning nested data (uses GC2's own copy mechanism) |
-| `gc2_add_name_variable` | add a named variable (game-object/string/number/…) to a Local/Global NameVariables component |
+| `gc2_add_name_variable` | add **or update** a named variable on a Local/Global NameVariables component — sets game-object / asset / string / number / bool values |
 | `gc2_create_quest` | create a GC2 `Quest` asset (title, description, tasks) |
+| `gc2_create_dialogue` | add a GC2 `Dialogue` and build a conversation from text lines (optional per-line speaker `Actor`) |
 | `component_copy` · `game_object_copy` | clone components / whole GameObject subtrees (values + refs) |
 | `asset_duplicate` · `asset_reserialize` | clone an asset/folder (fresh GUIDs + ref remap); reserialize to fix cached hashes after a YAML edit |
 | `cleanup_missing_scripts` | strip "missing script" slots from prefabs/scene project-wide (e.g. after removing a package) |
 
 ➡️ **Full Game Creator 2 docs & examples:** [`Editor/GameCreator2/README.md`](Editor/GameCreator2/README.md)
+
+### Sample: Dialogue From Text
+[`Samples~/DialogueFromText`](Samples~/DialogueFromText) — a runtime GC2 feature built with
+these tools: parses a plain-text script into a real **branching, playable** Dialogue, with
+speakers resolved **by name** from a Name Variables "cast" (adds a `ValueActor` variable type
+so a Name Variable can hold a Dialogue `Actor`). Kept as a sample because it depends on the
+GC2 Dialogue/Variables modules.
 
 ---
 

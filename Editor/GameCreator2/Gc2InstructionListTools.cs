@@ -391,13 +391,15 @@ namespace Gc2Mcp
 #endif
         }
 
-        [McpTool("Add a named variable to a Game Creator 2 LocalNameVariables / GlobalNameVariables component. Creates a NameVariable entry (m_Runtime.m_List.m_Source) with the given name and value type. valueType: 'game-object' (default), 'string', 'number', 'bool', 'integer', or any GC2 Value* class name. For a game-object variable you may pass an optional gameObjectValue path for its initial value. Lookup is by name string. Editor only; call editor_save_scene after.")]
+        [McpTool("Add OR update a named variable on a Game Creator 2 LocalNameVariables / GlobalNameVariables component. Creates a NameVariable entry (m_Runtime.m_List.m_Source) with the given name and value type. valueType: 'game-object' (default), 'string', 'number', 'bool', 'integer', or any GC2 Value* class name (e.g. 'ValueQuest', 'ValueItem'). Set its value with: gameObjectValue (scene path, for a game-object variable), assetValue (project asset path, for an asset-holding value like ValueQuest/ValueSprite/etc.), or stringValue (for a string variable). If the variable already exists, the value is updated. Editor only; call editor_save_scene after.")]
         public static string Gc2AddNameVariable(
             [McpParam("GameObject path holding the variables component")] string name,
             [McpParam("Component type (e.g. 'LocalNameVariables')")] string componentType,
             [McpParam("Variable name to add (e.g. 'MyVariable')")] string variableName,
             [McpParam("Value type: game-object / string / number / bool / integer, or a Value* class name")] string valueType = "game-object",
-            [McpParam("Optional GameObject path for a game-object variable's initial value")] string gameObjectValue = null)
+            [McpParam("Optional GameObject path for a game-object variable's initial value")] string gameObjectValue = null,
+            [McpParam("Optional project asset path to set as the value (for an asset-holding Value* type), e.g. 'Assets/MyAsset.asset'")] string assetValue = null,
+            [McpParam("Optional string to set as the value (for a string variable). Updates the value if the variable already exists.")] string stringValue = null)
         {
 #if UNITY_EDITOR
             var go = ToolHelpers.FindGameObject(name);
@@ -421,26 +423,41 @@ namespace Gc2Mcp
             if (source == null || !source.isArray)
                 return ToolHelpers.Error("Could not find 'm_Runtime.m_List.m_Source' (not a name-variables component?)");
 
-            // Skip if a variable with this name already exists.
+            // If a variable with this name already exists, reuse it (so we can update its
+            // value); otherwise append a fresh one.
+            SerializedProperty elem = null;
+            int idx = -1;
+            bool existed = false;
             for (int i = 0; i < source.arraySize; i++)
             {
                 var existing = source.GetArrayElementAtIndex(i).FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
                 if (existing != null && existing.stringValue == variableName)
-                    return ToolHelpers.Ok(new JObject { ["note"] = $"Variable '{variableName}' already exists; nothing added.", ["index"] = i });
+                {
+                    elem = source.GetArrayElementAtIndex(i);
+                    idx = i;
+                    existed = true;
+                    break;
+                }
             }
 
-            int idx = source.arraySize;
-            source.InsertArrayElementAtIndex(idx);
-            var elem = source.GetArrayElementAtIndex(idx);
-            elem.managedReferenceValue = System.Activator.CreateInstance(nameVarType);
+            if (!existed)
+            {
+                idx = source.arraySize;
+                source.InsertArrayElementAtIndex(idx);
+                elem = source.GetArrayElementAtIndex(idx);
+                elem.managedReferenceValue = System.Activator.CreateInstance(nameVarType);
 
-            var nameStr = elem.FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
-            if (nameStr == null) return ToolHelpers.Error("NameVariable has no 'm_Name.m_String'");
-            nameStr.stringValue = variableName;
+                var nameStr = elem.FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
+                if (nameStr == null) return ToolHelpers.Error("NameVariable has no 'm_Name.m_String'");
+                nameStr.stringValue = variableName;
+
+                var newValueProp = elem.FindPropertyRelative("m_Value");
+                if (newValueProp == null) return ToolHelpers.Error("NameVariable has no 'm_Value'");
+                newValueProp.managedReferenceValue = System.Activator.CreateInstance(valueTypeResolved);
+            }
 
             var valueProp = elem.FindPropertyRelative("m_Value");
             if (valueProp == null) return ToolHelpers.Error("NameVariable has no 'm_Value'");
-            valueProp.managedReferenceValue = System.Activator.CreateInstance(valueTypeResolved);
 
             string valueSet = valueClass;
             if (!string.IsNullOrEmpty(gameObjectValue))
@@ -452,6 +469,26 @@ namespace Gc2Mcp
                     inner.objectReferenceValue = valGo;
                     valueSet += $" = {valGo.name}";
                 }
+            }
+            if (!string.IsNullOrEmpty(assetValue))
+            {
+                var assetPath = ToProjectRelative(assetValue);
+                var asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
+                var inner = valueProp.FindPropertyRelative("m_Value");
+                if (asset == null)
+                    return ToolHelpers.Error($"Asset not found at '{assetPath}'");
+                if (inner == null || inner.propertyType != SerializedPropertyType.ObjectReference)
+                    return ToolHelpers.Error($"Value type '{valueClass}' has no object-reference 'm_Value' to assign an asset to");
+                inner.objectReferenceValue = asset;
+                valueSet += $" = {asset.name}";
+            }
+            if (stringValue != null)
+            {
+                var inner = valueProp.FindPropertyRelative("m_Value");
+                if (inner == null || inner.propertyType != SerializedPropertyType.String)
+                    return ToolHelpers.Error($"Value type '{valueClass}' has no string 'm_Value' to assign text to");
+                inner.stringValue = stringValue;
+                valueSet += " = (string set)";
             }
 
             so.ApplyModifiedProperties();
@@ -466,7 +503,9 @@ namespace Gc2Mcp
                 ["variable"] = variableName,
                 ["value"] = valueSet,
                 ["index"] = idx,
-                ["note"] = "Scene marked dirty - call editor_save_scene to persist."
+                ["existed"] = existed,
+                ["note"] = (existed ? "Updated existing variable. " : "Added variable. ") +
+                           "Scene marked dirty - call editor_save_scene to persist."
             });
 #else
             return ToolHelpers.Error("gc2_add_name_variable is editor-only");
@@ -474,6 +513,16 @@ namespace Gc2Mcp
         }
 
 #if UNITY_EDITOR
+        //! Normalizes a possibly-absolute path to a project-relative 'Assets/...' path.
+        private static string ToProjectRelative(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return path;
+            path = path.Replace('\\', '/');
+            int idx = path.IndexOf("/Assets/");
+            if (idx >= 0) return path.Substring(idx + 1);
+            return path;
+        }
+
         private static string MapValueType(string key)
         {
             switch ((key ?? "").Trim().ToLowerInvariant())

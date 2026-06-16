@@ -24,10 +24,13 @@ the runtime assembly).
 - `gc2_set_instruction_game_object` — set a `PropertyGetGameObject` field to `self`, `player`, or a scene object by path.
 - `gc2_set_managed_reference` — set ANY `[SerializeReference]` field by property path to a named type (e.g. a `Trigger`'s `m_Event` to an `Event` subclass).
 - `gc2_copy_instructions` — copy instructions from one `InstructionList` to another, deep-cloning all nested polymorphic data via `EditorJsonUtility` (the same faithful copy GC2's own copy/paste uses). Whole list or a single index; optional `replaceTarget`.
-- `gc2_add_name_variable` — add a named variable to a `LocalNameVariables` / `GlobalNameVariables` component (game-object / string / number / bool / integer, or any `Value*` type), with an optional initial value.
+- `gc2_add_name_variable` — add **or update** a named variable on a `LocalNameVariables` / `GlobalNameVariables` component (game-object / string / number / bool / integer, or any `Value*` type). Sets the value from `gameObjectValue` (scene path), `assetValue` (project asset path, for asset-holding `Value*` types like `ValueQuest`/`ValueActor`/`ValueSprite`), or `stringValue` (for a string variable). Re-calling with an existing name updates that variable's value.
 
 `Gc2QuestTools.cs`
 - `gc2_create_quest` — create a GC2 `Quest` asset (title, description, and a flat list of root tasks via `Tasks.AddToRoot`). Reference it in a Journal "Activate Quest" instruction, or register it in the Quests repository.
+
+`Gc2DialogueTools.cs`
+- `gc2_create_dialogue` — add a GC2 `Dialogue` component to a GameObject and build a **sequential** conversation from a list of text lines (each becomes a `Node`, chained parent→child in `Story.Content`); optional per-line speaker `Actor`. Play it with a "Dialogue: Play" instruction.
 
 `McpComponentCopyTool.cs`
 - `component_copy` — copy a whole component (values + object refs) between GameObjects via Unity's native CopyComponent/Paste.
