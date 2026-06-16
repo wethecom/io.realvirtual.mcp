@@ -24,7 +24,10 @@ the runtime assembly).
 - `gc2_set_instruction_game_object` — set a `PropertyGetGameObject` field to `self`, `player`, or a scene object by path.
 - `gc2_set_managed_reference` — set ANY `[SerializeReference]` field by property path to a named type (e.g. a `Trigger`'s `m_Event` to an `Event` subclass).
 - `gc2_copy_instructions` — copy instructions from one `InstructionList` to another, deep-cloning all nested polymorphic data via `EditorJsonUtility` (the same faithful copy GC2's own copy/paste uses). Whole list or a single index; optional `replaceTarget`.
-- `gc2_add_name_variable` — add **or update** a named variable on a `LocalNameVariables` / `GlobalNameVariables` component (game-object / string / number / bool / integer, or any `Value*` type). Sets the value from `gameObjectValue` (scene path), `assetValue` (project asset path, for asset-holding `Value*` types like `ValueQuest`/`ValueActor`/`ValueSprite`), or `stringValue` (for a string variable). Re-calling with an existing name updates that variable's value.
+Full **CRUD** for Name Variables on a `LocalNameVariables` / `GlobalNameVariables` component:
+- `gc2_add_name_variable` — **create or update** a named variable (game-object / string / number / bool / integer, or any `Value*` type). Sets the value from `gameObjectValue` (scene path), `assetValue` (project asset path, for asset-holding `Value*` types like `ValueQuest`/`ValueActor`/`ValueSprite`), or `stringValue` (for a string variable). Re-calling with an existing name updates that variable's value.
+- `gc2_list_name_variables` — **read** all variables (name, value type, current value); a crash-safe alternative to `component_get`.
+- `gc2_remove_name_variable` — **delete** a variable by name or index (`index: -1` clears all).
 
 `Gc2QuestTools.cs`
 - `gc2_create_quest` — create a GC2 `Quest` asset (title, description, and a flat list of root tasks via `Tasks.AddToRoot`). Reference it in a Journal "Activate Quest" instruction, or register it in the Quests repository.

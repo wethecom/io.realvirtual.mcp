@@ -27,7 +27,7 @@ build GC2 logic without ever opening the Inspector:
 | `gc2_set_instruction_game_object` | set an instruction's `PropertyGetGameObject` to `self` / `player` / a scene object |
 | `gc2_set_managed_reference` | set **any** `[SerializeReference]` field by path to a named type — Events, Conditions, Properties |
 | `gc2_copy_instructions` | copy whole instruction sets between lists, deep-cloning nested data (uses GC2's own copy mechanism) |
-| `gc2_add_name_variable` | add **or update** a named variable on a Local/Global NameVariables component — sets game-object / asset / string / number / bool values |
+| `gc2_add_name_variable` · `gc2_list_name_variables` · `gc2_remove_name_variable` | full **CRUD** for Local/Global Name Variables — create/update (sets game-object / asset / string / number / bool values), read, delete |
 | `gc2_create_quest` | create a GC2 `Quest` asset (title, description, tasks) |
 | `gc2_create_dialogue` | add a GC2 `Dialogue` and build a conversation from text lines (optional per-line speaker `Actor`) |
 | `component_copy` · `game_object_copy` | clone components / whole GameObject subtrees (values + refs) |

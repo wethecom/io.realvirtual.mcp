@@ -512,7 +512,152 @@ namespace Gc2Mcp
 #endif
         }
 
+        [McpTool("List the named variables on a Game Creator 2 LocalNameVariables / GlobalNameVariables component (read-only). Returns each variable's name, value type, and current value — a safe alternative to component_get. Editor only.")]
+        public static string Gc2ListNameVariables(
+            [McpParam("GameObject path holding the variables component")] string name,
+            [McpParam("Component type (e.g. 'LocalNameVariables')")] string componentType)
+        {
 #if UNITY_EDITOR
+            var src = ResolveNameSource(name, componentType, out string error, out _, out _);
+            if (src == null) return error;
+
+            var vars = new JArray();
+            for (int i = 0; i < src.arraySize; i++)
+            {
+                var elem = src.GetArrayElementAtIndex(i);
+                var nameStr = elem.FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
+                var valueProp = elem.FindPropertyRelative("m_Value");
+                vars.Add(new JObject
+                {
+                    ["index"] = i,
+                    ["name"] = nameStr != null ? nameStr.stringValue : null,
+                    ["type"] = ShortTypeName(valueProp?.managedReferenceFullTypename),
+                    ["value"] = ReadVariableValue(valueProp)
+                });
+            }
+
+            return ToolHelpers.Ok(new JObject
+            {
+                ["gameObject"] = name,
+                ["component"] = componentType,
+                ["count"] = src.arraySize,
+                ["variables"] = vars
+            });
+#else
+            return ToolHelpers.Error("gc2_list_name_variables is editor-only");
+#endif
+        }
+
+        [McpTool("Remove a named variable from a Game Creator 2 LocalNameVariables / GlobalNameVariables component, by name (variableName) or by index. Editor only; call editor_save_scene after.")]
+        public static string Gc2RemoveNameVariable(
+            [McpParam("GameObject path holding the variables component")] string name,
+            [McpParam("Component type (e.g. 'LocalNameVariables')")] string componentType,
+            [McpParam("Variable name to remove (omit if using index)")] string variableName = null,
+            [McpParam("Variable index to remove (used if variableName is omitted; -1 = clear all)")] int index = -2)
+        {
+#if UNITY_EDITOR
+            var src = ResolveNameSource(name, componentType, out string error, out SerializedObject so, out Component comp);
+            if (src == null) return error;
+
+            int removeAt = -2;
+            if (!string.IsNullOrEmpty(variableName))
+            {
+                for (int i = 0; i < src.arraySize; i++)
+                {
+                    var n = src.GetArrayElementAtIndex(i).FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
+                    if (n != null && n.stringValue == variableName) { removeAt = i; break; }
+                }
+                if (removeAt == -2) return ToolHelpers.Error($"Variable '{variableName}' not found");
+            }
+            else
+            {
+                removeAt = index;
+            }
+
+            int before = src.arraySize;
+            if (removeAt == -1)
+            {
+                src.ClearArray();
+            }
+            else
+            {
+                if (removeAt < 0 || removeAt >= src.arraySize)
+                    return ToolHelpers.Error($"Index {removeAt} out of range (0..{src.arraySize - 1})");
+                src.DeleteArrayElementAtIndex(removeAt);
+            }
+
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(comp);
+            var go = comp.gameObject;
+            if (!Application.isPlaying && go.scene.IsValid())
+                EditorSceneManager.MarkSceneDirty(go.scene);
+
+            return ToolHelpers.Ok(new JObject
+            {
+                ["gameObject"] = name,
+                ["component"] = componentType,
+                ["removed"] = before - src.arraySize,
+                ["count"] = src.arraySize,
+                ["note"] = "Scene marked dirty - call editor_save_scene to persist."
+            });
+#else
+            return ToolHelpers.Error("gc2_remove_name_variable is editor-only");
+#endif
+        }
+
+#if UNITY_EDITOR
+        //! Resolves the 'm_Runtime.m_List.m_Source' NameVariable array of a name-variables component.
+        private static SerializedProperty ResolveNameSource(
+            string name, string componentType, out string error, out SerializedObject so, out Component comp)
+        {
+            error = null; so = null; comp = null;
+
+            var go = ToolHelpers.FindGameObject(name);
+            if (go == null) { error = ToolHelpers.Error($"GameObject '{name}' not found"); return null; }
+
+            var compType = McpTypeResolver.Resolve(componentType);
+            if (compType == null) { error = ToolHelpers.Error($"Component type '{componentType}' not found"); return null; }
+
+            comp = go.GetComponent(compType);
+            if (comp == null) { error = ToolHelpers.Error($"Component '{componentType}' not found on '{name}'"); return null; }
+
+            so = new SerializedObject(comp);
+            var source = so.FindProperty("m_Runtime")?.FindPropertyRelative("m_List")?.FindPropertyRelative("m_Source");
+            if (source == null || !source.isArray)
+            {
+                error = ToolHelpers.Error("Could not find 'm_Runtime.m_List.m_Source' (not a name-variables component?)");
+                return null;
+            }
+            return source;
+        }
+
+        //! Reads a NameVariable's current value (object name / string / number / bool) for display.
+        private static string ReadVariableValue(SerializedProperty valueProp)
+        {
+            var inner = valueProp?.FindPropertyRelative("m_Value");
+            if (inner == null) return null;
+            switch (inner.propertyType)
+            {
+                case SerializedPropertyType.ObjectReference:
+                    return inner.objectReferenceValue != null ? inner.objectReferenceValue.name : "(none)";
+                case SerializedPropertyType.String: return inner.stringValue;
+                case SerializedPropertyType.Integer: return inner.longValue.ToString();
+                case SerializedPropertyType.Float: return inner.doubleValue.ToString();
+                case SerializedPropertyType.Boolean: return inner.boolValue ? "true" : "false";
+                default: return inner.propertyType.ToString();
+            }
+        }
+
+        //! Turns a managedReferenceFullTypename ("Assembly Namespace.Class") into the short class name.
+        private static string ShortTypeName(string full)
+        {
+            if (string.IsNullOrEmpty(full)) return null;
+            var parts = full.Split(' ');
+            var cls = parts[parts.Length - 1];
+            int dot = cls.LastIndexOf('.');
+            return dot >= 0 ? cls.Substring(dot + 1) : cls;
+        }
+
         //! Normalizes a possibly-absolute path to a project-relative 'Assets/...' path.
         private static string ToProjectRelative(string path)
         {
