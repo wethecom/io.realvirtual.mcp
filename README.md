@@ -1,5 +1,11 @@
 # realvirtual Unity MCP Package
 
+> **Fork note:** This is a fork of [`game4automation/io.realvirtual.mcp`](https://github.com/game4automation/io.realvirtual.mcp)
+> with **added Game Creator 2 tools** in [`Editor/GameCreator2/`](Editor/GameCreator2/)
+> (instruction/event/property authoring + component/GameObject copy over MCP).
+> All other files are the unmodified upstream package (MIT, © realvirtual GmbH).
+> The added tools are MIT, © 2026 wethecom — not affiliated with realvirtual GmbH.
+
 **Give AI agents full control over your Unity Editor - scenes, GameObjects, components, simulation, digital twins, and more.**
 
 This open-source Unity package implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that lets AI agents like Claude, Cursor, or any MCP-compatible client interact with Unity in real time. Built for **any Unity project** - including industrial digital twins, robotics simulation, and virtual commissioning.
