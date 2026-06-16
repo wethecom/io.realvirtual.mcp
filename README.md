@@ -1,10 +1,38 @@
-# realvirtual Unity MCP Package
+# realvirtual Unity MCP — with Game Creator 2 tools
 
-> **Fork note:** This is a fork of [`game4automation/io.realvirtual.mcp`](https://github.com/game4automation/io.realvirtual.mcp)
-> with **added Game Creator 2 tools** in [`Editor/GameCreator2/`](Editor/GameCreator2/)
-> (instruction/event/property authoring + component/GameObject copy over MCP).
-> All other files are the unmodified upstream package (MIT, © realvirtual GmbH).
-> The added tools are MIT, © 2026 wethecom — not affiliated with realvirtual GmbH.
+> Fork of [`game4automation/io.realvirtual.mcp`](https://github.com/game4automation/io.realvirtual.mcp)
+> that adds first-class **Game Creator 2 (GC2)** authoring over MCP. The upstream
+> package is unmodified — the GC2 tools live in [`Editor/GameCreator2/`](Editor/GameCreator2/).
+> Upstream: MIT © realvirtual GmbH. GC2 additions: MIT © 2026 wethecom (not affiliated with realvirtual GmbH).
+
+## 🎮 Game Creator 2 over MCP — the headline feature
+
+Generic `component_get`/`component_set` can't touch most of **Game Creator 2**'s
+data, because GC2 stores its visual scripting in `[SerializeReference]` polymorphic
+fields. **This fork makes that data fully AI-authorable over MCP** — an agent can
+build GC2 logic without ever opening the Inspector:
+
+- **Build Instruction lists** — add / list / remove `Instruction`s in any
+  `InstructionList` (Triggers, Actions, enter/exit lists, …).
+- **Set polymorphic fields** — point a `PropertyGetGameObject` at self / player /
+  any scene object, or set **any** `[SerializeReference]` field (e.g. a `Trigger`'s
+  `m_Event` to an `Event` subclass, a `Condition`, a Property type).
+- **Wire Triggers, Conditions, Events, and Properties** programmatically.
+- **Copy components & whole GameObject subtrees** (values + object references,
+  animation clips, full hierarchies) between objects.
+
+| GC2 tool | Purpose |
+|----------|---------|
+| `gc2_add_instruction` · `gc2_list_instructions` · `gc2_remove_instruction` | manage GC2 `InstructionList`s (list reads are a crash-safe alternative to `component_get`) |
+| `gc2_set_instruction_game_object` | set an instruction's `PropertyGetGameObject` to `self` / `player` / a scene object |
+| `gc2_set_managed_reference` | set **any** `[SerializeReference]` field by path to a named type — Events, Conditions, Properties |
+| `component_copy` · `game_object_copy` | clone components / whole GameObject subtrees (values + refs) |
+
+➡️ **Full Game Creator 2 docs & examples:** [`Editor/GameCreator2/README.md`](Editor/GameCreator2/README.md)
+
+---
+
+*The rest of this README is the upstream realvirtual MCP server documentation.*
 
 **Give AI agents full control over your Unity Editor - scenes, GameObjects, components, simulation, digital twins, and more.**
 
