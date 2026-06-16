@@ -28,6 +28,7 @@ build GC2 logic without ever opening the Inspector:
 | `gc2_set_managed_reference` | set **any** `[SerializeReference]` field by path to a named type — Events, Conditions, Properties |
 | `gc2_copy_instructions` | copy whole instruction sets between lists, deep-cloning nested data (uses GC2's own copy mechanism) |
 | `gc2_add_name_variable` | add a named variable (game-object/string/number/…) to a Local/Global NameVariables component |
+| `gc2_create_quest` | create a GC2 `Quest` asset (title, description, tasks) |
 | `component_copy` · `game_object_copy` | clone components / whole GameObject subtrees (values + refs) |
 | `asset_duplicate` · `asset_reserialize` | clone an asset/folder (fresh GUIDs + ref remap); reserialize to fix cached hashes after a YAML edit |
 | `cleanup_missing_scripts` | strip "missing script" slots from prefabs/scene project-wide (e.g. after removing a package) |

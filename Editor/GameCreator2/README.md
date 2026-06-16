@@ -26,6 +26,9 @@ the runtime assembly).
 - `gc2_copy_instructions` — copy instructions from one `InstructionList` to another, deep-cloning all nested polymorphic data via `EditorJsonUtility` (the same faithful copy GC2's own copy/paste uses). Whole list or a single index; optional `replaceTarget`.
 - `gc2_add_name_variable` — add a named variable to a `LocalNameVariables` / `GlobalNameVariables` component (game-object / string / number / bool / integer, or any `Value*` type), with an optional initial value.
 
+`Gc2QuestTools.cs`
+- `gc2_create_quest` — create a GC2 `Quest` asset (title, description, and a flat list of root tasks via `Tasks.AddToRoot`). Reference it in a Journal "Activate Quest" instruction, or register it in the Quests repository.
+
 `McpComponentCopyTool.cs`
 - `component_copy` — copy a whole component (values + object refs) between GameObjects via Unity's native CopyComponent/Paste.
 - `game_object_copy` — copy a whole GameObject subtree into a target parent (preserving local transform) via Object.Instantiate.
