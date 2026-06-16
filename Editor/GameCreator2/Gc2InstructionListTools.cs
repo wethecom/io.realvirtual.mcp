@@ -331,6 +331,66 @@ namespace Gc2Mcp
 #endif
         }
 
+        [McpTool("Copy Game Creator 2 instructions from one InstructionList to another, deep-cloning all nested polymorphic data via EditorJsonUtility (the same faithful copy GC2's own copy/paste uses). Copies the whole source list (appended to the target) by default, or a single item via sourceIndex. Set replaceTarget=true to clear the target list first. Object references inside the items are preserved (re-point with gc2_set_instruction_game_object if needed). Use fully-qualified component types for ambiguous names like GameCreator.Runtime.VisualScripting.Trigger. Editor only; call editor_save_scene after.")]
+        public static string Gc2CopyInstructions(
+            [McpParam("Source GameObject hierarchy path")] string sourceName,
+            [McpParam("Source component type (fully-qualified if ambiguous)")] string sourceComponentType,
+            [McpParam("Source InstructionList field (e.g. 'onEnter', 'm_Instructions')")] string sourceListField,
+            [McpParam("Target GameObject hierarchy path")] string targetName,
+            [McpParam("Target component type (fully-qualified if ambiguous)")] string targetComponentType,
+            [McpParam("Target InstructionList field")] string targetListField,
+            [McpParam("Index of a single source instruction to copy, or -1 for the whole list")] int sourceIndex = -1,
+            [McpParam("If true, clear the target list before copying")] bool replaceTarget = false)
+        {
+#if UNITY_EDITOR
+            var srcArr = ResolveList(sourceName, sourceComponentType, sourceListField, out var srcErr, out _, out _);
+            if (srcArr == null) return srcErr;
+            var tgtArr = ResolveList(targetName, targetComponentType, targetListField, out var tgtErr, out var tgtSo, out var tgtComp);
+            if (tgtArr == null) return tgtErr;
+
+            if (sourceIndex >= 0 && sourceIndex >= srcArr.arraySize)
+                return ToolHelpers.Error($"sourceIndex {sourceIndex} out of range (count {srcArr.arraySize})");
+
+            if (replaceTarget) tgtArr.ClearArray();
+
+            var copied = new JArray();
+            int from = sourceIndex >= 0 ? sourceIndex : 0;
+            int to = sourceIndex >= 0 ? sourceIndex + 1 : srcArr.arraySize;
+            for (int i = from; i < to; i++)
+            {
+                object srcVal = srcArr.GetArrayElementAtIndex(i).managedReferenceValue;
+                if (srcVal == null) { copied.Add("(null skipped)"); continue; }
+
+                // Faithful deep clone (incl. nested [SerializeReference]) - the same mechanism GC2 uses.
+                var t = srcVal.GetType();
+                var clone = System.Activator.CreateInstance(t);
+                EditorJsonUtility.FromJsonOverwrite(EditorJsonUtility.ToJson(srcVal), clone);
+
+                int idx = tgtArr.arraySize;
+                tgtArr.InsertArrayElementAtIndex(idx);
+                tgtArr.GetArrayElementAtIndex(idx).managedReferenceValue = clone;
+                copied.Add(t.Name);
+            }
+
+            tgtSo.ApplyModifiedProperties();
+            EditorUtility.SetDirty(tgtComp);
+            var go = tgtComp.gameObject;
+            if (!Application.isPlaying && go.scene.IsValid())
+                EditorSceneManager.MarkSceneDirty(go.scene);
+
+            return ToolHelpers.Ok(new JObject
+            {
+                ["from"] = $"{sourceName} / {sourceComponentType} / {sourceListField}",
+                ["to"] = $"{targetName} / {targetComponentType} / {targetListField}",
+                ["copied"] = copied,
+                ["targetCount"] = tgtArr.arraySize,
+                ["note"] = "Deep-cloned via EditorJsonUtility. Call editor_save_scene to persist."
+            });
+#else
+            return ToolHelpers.Error("gc2_copy_instructions is editor-only");
+#endif
+        }
+
 #if UNITY_EDITOR
         //! Builds a GC2 PropertyTypeGetGameObject instance (GetGameObjectSelf/Player/Instance)
         //! by type name. For the Instance variant, sets its private 'm_GameObject' reference.

@@ -23,6 +23,7 @@ the runtime assembly).
 - `gc2_remove_instruction` — remove by index, or clear with `index: -1`.
 - `gc2_set_instruction_game_object` — set a `PropertyGetGameObject` field to `self`, `player`, or a scene object by path.
 - `gc2_set_managed_reference` — set ANY `[SerializeReference]` field by property path to a named type (e.g. a `Trigger`'s `m_Event` to an `Event` subclass).
+- `gc2_copy_instructions` — copy instructions from one `InstructionList` to another, deep-cloning all nested polymorphic data via `EditorJsonUtility` (the same faithful copy GC2's own copy/paste uses). Whole list or a single index; optional `replaceTarget`.
 
 `McpComponentCopyTool.cs`
 - `component_copy` — copy a whole component (values + object refs) between GameObjects via Unity's native CopyComponent/Paste.

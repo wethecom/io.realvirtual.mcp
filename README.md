@@ -26,6 +26,7 @@ build GC2 logic without ever opening the Inspector:
 | `gc2_add_instruction` · `gc2_list_instructions` · `gc2_remove_instruction` | manage GC2 `InstructionList`s (list reads are a crash-safe alternative to `component_get`) |
 | `gc2_set_instruction_game_object` | set an instruction's `PropertyGetGameObject` to `self` / `player` / a scene object |
 | `gc2_set_managed_reference` | set **any** `[SerializeReference]` field by path to a named type — Events, Conditions, Properties |
+| `gc2_copy_instructions` | copy whole instruction sets between lists, deep-cloning nested data (uses GC2's own copy mechanism) |
 | `component_copy` · `game_object_copy` | clone components / whole GameObject subtrees (values + refs) |
 
 ➡️ **Full Game Creator 2 docs & examples:** [`Editor/GameCreator2/README.md`](Editor/GameCreator2/README.md)
