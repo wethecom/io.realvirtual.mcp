@@ -24,10 +24,16 @@ the runtime assembly).
 - `gc2_set_instruction_game_object` — set a `PropertyGetGameObject` field to `self`, `player`, or a scene object by path.
 - `gc2_set_managed_reference` — set ANY `[SerializeReference]` field by property path to a named type (e.g. a `Trigger`'s `m_Event` to an `Event` subclass).
 - `gc2_copy_instructions` — copy instructions from one `InstructionList` to another, deep-cloning all nested polymorphic data via `EditorJsonUtility` (the same faithful copy GC2's own copy/paste uses). Whole list or a single index; optional `replaceTarget`.
+- `gc2_add_name_variable` — add a named variable to a `LocalNameVariables` / `GlobalNameVariables` component (game-object / string / number / bool / integer, or any `Value*` type), with an optional initial value.
 
 `McpComponentCopyTool.cs`
 - `component_copy` — copy a whole component (values + object refs) between GameObjects via Unity's native CopyComponent/Paste.
 - `game_object_copy` — copy a whole GameObject subtree into a target parent (preserving local transform) via Object.Instantiate.
+
+`McpAssetTools.cs` (general project-asset helpers — not GC2-specific)
+- `asset_duplicate` — copy an asset OR whole folder with fresh GUID(s); for folders, internal references are remapped to the copies (like Project-window Duplicate). Good for cloning a self-contained asset set so edits don't affect the original.
+- `asset_reserialize` — force-reserialize an asset to recompute cached hashes/IDs (e.g. GC2 `IdPathString.m_ID`) after editing its YAML directly.
+- `cleanup_missing_scripts` — strip "missing script" MonoBehaviour slots from prefabs (and the open scene) project-wide, e.g. after deleting a package whose components were on many prefabs.
 
 ## Requirements
 - This package (provides the `[McpTool]` attribute, `ToolHelpers`, `McpTypeResolver`).

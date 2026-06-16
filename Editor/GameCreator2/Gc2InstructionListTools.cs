@@ -391,7 +391,102 @@ namespace Gc2Mcp
 #endif
         }
 
+        [McpTool("Add a named variable to a Game Creator 2 LocalNameVariables / GlobalNameVariables component. Creates a NameVariable entry (m_Runtime.m_List.m_Source) with the given name and value type. valueType: 'game-object' (default), 'string', 'number', 'bool', 'integer', or any GC2 Value* class name. For a game-object variable you may pass an optional gameObjectValue path for its initial value. Lookup is by name string. Editor only; call editor_save_scene after.")]
+        public static string Gc2AddNameVariable(
+            [McpParam("GameObject path holding the variables component")] string name,
+            [McpParam("Component type (e.g. 'LocalNameVariables')")] string componentType,
+            [McpParam("Variable name to add (e.g. 'MyVariable')")] string variableName,
+            [McpParam("Value type: game-object / string / number / bool / integer, or a Value* class name")] string valueType = "game-object",
+            [McpParam("Optional GameObject path for a game-object variable's initial value")] string gameObjectValue = null)
+        {
 #if UNITY_EDITOR
+            var go = ToolHelpers.FindGameObject(name);
+            if (go == null) return ToolHelpers.Error($"GameObject '{name}' not found");
+
+            var compType = McpTypeResolver.Resolve(componentType);
+            if (compType == null) return ToolHelpers.Error($"Component type '{componentType}' not found");
+            var comp = go.GetComponent(compType);
+            if (comp == null) return ToolHelpers.Error($"Component '{componentType}' not found on '{name}'");
+
+            var valueClass = MapValueType(valueType);
+            var valueTypeResolved = McpTypeResolver.Resolve(valueClass);
+            if (valueTypeResolved == null) return ToolHelpers.Error($"Value type '{valueClass}' not found");
+            var nameVarType = McpTypeResolver.Resolve("NameVariable");
+            if (nameVarType == null) return ToolHelpers.Error("GC2 'NameVariable' type not found");
+
+            var so = new SerializedObject(comp);
+            var runtime = so.FindProperty("m_Runtime");
+            var list = runtime?.FindPropertyRelative("m_List");
+            var source = list?.FindPropertyRelative("m_Source");
+            if (source == null || !source.isArray)
+                return ToolHelpers.Error("Could not find 'm_Runtime.m_List.m_Source' (not a name-variables component?)");
+
+            // Skip if a variable with this name already exists.
+            for (int i = 0; i < source.arraySize; i++)
+            {
+                var existing = source.GetArrayElementAtIndex(i).FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
+                if (existing != null && existing.stringValue == variableName)
+                    return ToolHelpers.Ok(new JObject { ["note"] = $"Variable '{variableName}' already exists; nothing added.", ["index"] = i });
+            }
+
+            int idx = source.arraySize;
+            source.InsertArrayElementAtIndex(idx);
+            var elem = source.GetArrayElementAtIndex(idx);
+            elem.managedReferenceValue = System.Activator.CreateInstance(nameVarType);
+
+            var nameStr = elem.FindPropertyRelative("m_Name")?.FindPropertyRelative("m_String");
+            if (nameStr == null) return ToolHelpers.Error("NameVariable has no 'm_Name.m_String'");
+            nameStr.stringValue = variableName;
+
+            var valueProp = elem.FindPropertyRelative("m_Value");
+            if (valueProp == null) return ToolHelpers.Error("NameVariable has no 'm_Value'");
+            valueProp.managedReferenceValue = System.Activator.CreateInstance(valueTypeResolved);
+
+            string valueSet = valueClass;
+            if (!string.IsNullOrEmpty(gameObjectValue))
+            {
+                var valGo = ToolHelpers.FindGameObject(gameObjectValue);
+                var inner = valueProp.FindPropertyRelative("m_Value");
+                if (valGo != null && inner != null && inner.propertyType == SerializedPropertyType.ObjectReference)
+                {
+                    inner.objectReferenceValue = valGo;
+                    valueSet += $" = {valGo.name}";
+                }
+            }
+
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(comp);
+            if (!Application.isPlaying && go.scene.IsValid())
+                EditorSceneManager.MarkSceneDirty(go.scene);
+
+            return ToolHelpers.Ok(new JObject
+            {
+                ["gameObject"] = name,
+                ["component"] = componentType,
+                ["variable"] = variableName,
+                ["value"] = valueSet,
+                ["index"] = idx,
+                ["note"] = "Scene marked dirty - call editor_save_scene to persist."
+            });
+#else
+            return ToolHelpers.Error("gc2_add_name_variable is editor-only");
+#endif
+        }
+
+#if UNITY_EDITOR
+        private static string MapValueType(string key)
+        {
+            switch ((key ?? "").Trim().ToLowerInvariant())
+            {
+                case "game-object": case "gameobject": case "go": return "ValueGameObject";
+                case "string": case "text": return "ValueString";
+                case "number": case "decimal": case "float": return "ValueNumber";
+                case "bool": case "boolean": return "ValueBool";
+                case "integer": case "int": return "ValueInteger";
+                default: return key; // assume an explicit Value* class name
+            }
+        }
+
         //! Builds a GC2 PropertyTypeGetGameObject instance (GetGameObjectSelf/Player/Instance)
         //! by type name. For the Instance variant, sets its private 'm_GameObject' reference.
         private static object CreateGameObjectProperty(string typeName, GameObject go)
