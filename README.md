@@ -45,11 +45,11 @@ GC2 Dialogue/Variables modules.
 
 ---
 
-*The rest of this README is the upstream realvirtual MCP server documentation.*
+*The rest of this README documents the underlying MCP server (forked from upstream).*
 
-**Give AI agents full control over your Unity Editor - scenes, GameObjects, components, simulation, digital twins, and more.**
+**Give AI agents full control over your Unity Editor — scenes, GameObjects, components, simulation, and more.**
 
-This open-source Unity package implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that lets AI agents like Claude, Cursor, or any MCP-compatible client interact with Unity in real time. Built for **any Unity project** - including industrial digital twins, robotics simulation, and virtual commissioning.
+This open-source Unity package implements a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that lets AI agents like Claude, Cursor, or any MCP-compatible client interact with Unity in real time. It works with **any Unity project**; this fork is focused on **game development with Game Creator 2** (see the top of this README).
 
 ### Why This MCP Server Is Different
 
@@ -79,16 +79,7 @@ That's it. No Python changes, no server restart, no tool registration. Just reco
 - **Survives domain reloads** - Auto-reconnects after Unity recompiles scripts
 - **Multi-instance support** - Run multiple Unity instances, each with its own MCP server
 
-### Digital Twin Tools with realvirtual
-
-This MCP package works standalone with any Unity project. When combined with the [**realvirtual**](https://realvirtual.io) framework ([Unity Asset Store](https://assetstore.unity.com/packages/tools/integration/realvirtual-io-digital-twin-professional-6-301340)), you get additional MCP tools purpose-built for **industrial digital twins and virtual commissioning**:
-
-- **Drives** - Control motors, actuators, conveyors: `drive_to`, `drive_jog_forward`, `drive_stop`, `drive_set_speed`
-- **Sensors** - Read industrial sensors: `sensor_list`, `sensor_get`, `sensor_get_occupied`
-- **PLC Signals** - Read/write PLC I/O: `signal_set_bool`, `signal_set_int`, `signal_set_float`
-- **Robot IK** - Inverse kinematics control: `ik_get_state`, `ik_solve_target`, `ik_verify_fk`
-
-This enables AI agents to operate complete virtual factory simulations - move robots, control conveyors, read sensors, and interact with PLC programs in real time.
+### Architecture
 
 ```
 AI Agent (Claude Desktop / Claude Code / Cursor)
@@ -108,7 +99,7 @@ This Unity Package (C# WebSocket server + tool registry)
 
 1. Open Unity **Window > Package Manager**
 2. Click **+ > Add package from git URL**
-3. Enter: `https://github.com/game4automation/io.realvirtual.mcp.git`
+3. Enter: `https://github.com/wethecom/io.realvirtual.mcp.git` (this fork — includes the Game Creator 2 tools)
 
 ### Updating
 
@@ -195,15 +186,7 @@ The package includes 60+ tools organized by category:
 | **Prefabs** | `prefab_instantiate`, `prefab_find`, `prefab_open`, `prefab_save` |
 | **Editor** | `editor_recompile`, `editor_read_log`, `editor_save_scene`, `editor_wait_ready` |
 | **Screenshots** | `screenshot_editor`, `screenshot_game`, `screenshot_scene` |
-
-When used with the [realvirtual](https://assetstore.unity.com/packages/tools/integration/realvirtual-io-digital-twin-professional-6-301340) framework, additional tools are available:
-
-| Category | Examples |
-|----------|----------|
-| **Drives** | `drive_list`, `drive_to`, `drive_jog_forward`, `drive_stop` |
-| **Sensors** | `sensor_list`, `sensor_get`, `sensor_get_occupied` |
-| **Signals** | `signal_list`, `signal_set_bool`, `signal_set_int`, `signal_set_float` |
-| **IK** | `ik_get_state`, `ik_solve_target`, `ik_verify_fk` |
+| **Game Creator 2** | `gc2_add_instruction`, `gc2_add_name_variable`, `gc2_create_dialogue`, `gc2_create_quest`, … (see top) |
 
 ## Creating Custom Tools
 
@@ -277,19 +260,16 @@ It ships with an embedded Python 3.12 runtime and can be downloaded directly fro
 
 This package is provided **as-is** with no support or service included.
 
-For commercial customers of [realvirtual](https://realvirtual.io), we offer professional services for **digital twin development**, **virtual commissioning**, and **LLM/AI agent integration**. Contact us at https://realvirtual.io for details.
-
 ## License
 
-MIT License - Copyright (c) 2026 realvirtual GmbH
+MIT License — the upstream MCP server is © 2026 realvirtual GmbH; the Game Creator 2
+additions in this fork are © 2026 wethecom. Not affiliated with or endorsed by realvirtual
+GmbH or the Game Creator team.
 
 See [LICENSE.md](LICENSE.md) for full text.
 
 ## Links
 
-- Website: https://realvirtual.io
-- Documentation: https://doc.realvirtual.io/extensions/mcp-server
-- Python MCP Server: https://github.com/game4automation/realvirtual-MCP
-- Unity Asset Store (MCP Server): https://assetstore.unity.com/preview/361912/1260684
-- Unity Asset Store (Starter): https://assetstore.unity.com/packages/tools/integration/realvirtual-io-digital-twin-starter-6-303030
-- Unity Asset Store (Professional): https://assetstore.unity.com/packages/tools/integration/realvirtual-io-digital-twin-professional-6-301340
+- This fork: https://github.com/wethecom/io.realvirtual.mcp
+- Upstream MCP server: https://github.com/game4automation/io.realvirtual.mcp
+- Python MCP Server (bridge): https://github.com/game4automation/realvirtual-MCP

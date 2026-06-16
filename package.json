@@ -1,8 +1,8 @@
 {
   "name": "io.realvirtual.mcp",
   "version": "1.0.2",
-  "displayName": "realvirtual MCP Server",
-  "description": "MCP Server bridge for AI agent integration with realvirtual Digital Twins. Enables Unity simulation control through MCP protocol via WebSocket.",
+  "displayName": "realvirtual MCP Server + Game Creator 2",
+  "description": "Unity MCP server (fork of realvirtual's) with first-class Game Creator 2 authoring over MCP. Lets AI agents control the Unity Editor and build GC2 logic — instructions, triggers, name variables, quests, dialogues — through the MCP protocol via WebSocket.",
   "unity": "6000.0",
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1"
@@ -12,8 +12,7 @@
     "mcp",
     "ai",
     "agent",
-    "automation",
-    "digital-twin",
+    "unity",
     "game-creator-2"
   ],
   "samples": [

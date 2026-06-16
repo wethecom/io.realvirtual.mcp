@@ -1,12 +1,22 @@
 # Changelog
 
-All notable changes to the realvirtual MCP Server package.
+All notable changes to this package.
 
-## [1.0.2] - 2026-03-10
+## Fork (wethecom) — Game Creator 2 tools
 
 ### Added
-- Domain-specific MCP tools for Drives, Sensors, PLC Signals, MUs, LogicSteps, and Scene Notes (shipped via `io.realvirtual.starter`)
-- MCP Server listed as new feature in realvirtual 6.3.0 release notes
+- First-class **Game Creator 2** authoring over MCP (`Editor/GameCreator2/`): manage
+  `InstructionList`s, set `[SerializeReference]` fields (Events/Conditions/Properties),
+  copy components & GameObject subtrees, duplicate assets, clean missing scripts.
+- Full **CRUD** for GC2 Name Variables: `gc2_add_name_variable` (create/update — sets
+  game-object / asset / string / number / bool values), `gc2_list_name_variables` (read),
+  `gc2_remove_name_variable` (delete).
+- `gc2_create_quest` and `gc2_create_dialogue`.
+- Sample: **Dialogue From Text** (`Samples~/DialogueFromText`) — parse a text script into a
+  branching, playable Dialogue with speakers resolved by name from a Name Variables cast
+  (adds a `ValueActor` variable type).
+
+## [1.0.2] - 2026-03-10
 
 ### Changed
 - Updated documentation and Asset Store links
